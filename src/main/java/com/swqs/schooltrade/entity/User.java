@@ -1,56 +1,113 @@
 package com.swqs.schooltrade.entity;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.swqs.schooltrade.util.BaseEntity;
+import com.swqs.schooltrade.util.DateRecord;
 
 @Entity
-public class User extends BaseEntity{
+public class User extends DateRecord {
 	String account;
-	String passwordHash;
+	String password;
+	short sex;
+	Date birthday;
+	String phone;
+	int balance;
+	String face_url;
 	String name;
 	String email;
-	String avatar;
+	School school;
 
-	@Column(unique=true)
+	@Column(unique = true, nullable = false)
 	public String getAccount() {
 		return account;
 	}
 
-	@Column(nullable = false)
-	@JsonIgnore
-	public String getPasswordHash() {
-		return passwordHash;
-	}
-	@Column(unique=true)
-	public String getName() {
-		return name;
-	}
-	@Column(nullable=true)
-	public String getAvatar() {
-		return avatar;
-	}
-	@Column(nullable=false,unique=true)
-	public String getEmail() {
-		return email;
-	}
-	
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	
 	public void setAccount(String account) {
 		this.account = account;
 	}
-	public void setPasswordHash(String passwordHash) {
-		this.passwordHash = passwordHash;
+
+	@Column(nullable = false)
+	@JsonIgnore
+	public String getPassword() {
+		return password;
 	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	@Column(nullable = false)
+	public short getSex() {
+		return sex;
+	}
+
+	public void setSex(short sex) {
+		this.sex = sex;
+	}
+
+	@Column(nullable = false)
+	public Date getBirthday() {
+		return birthday;
+	}
+
+	public void setBirthday(Date birthday) {
+		this.birthday = birthday;
+	}
+
+	@Column(unique = true, nullable = false)
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public int getBalance() {
+		return balance;
+	}
+
+	public void setBalance(int balance) {
+		this.balance = balance;
+	}
+
+	public String getFace_url() {
+		return face_url;
+	}
+
+	public void setFace_url(String face_url) {
+		this.face_url = face_url;
+	}
+
+	@Column(unique = true, nullable = false)
+	public String getName() {
+		return name;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
-	public void setAvatar(String avatar) {
-		this.avatar = avatar;
+
+	@Column(unique = true, nullable = false)
+	public String getEmail() {
+		return email;
 	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
+	@Column(nullable = false)
+	public School getSchool() {
+		return school;
+	}
+
+	public void setSchool(School school) {
+		this.school = school;
+	}
+
 }
