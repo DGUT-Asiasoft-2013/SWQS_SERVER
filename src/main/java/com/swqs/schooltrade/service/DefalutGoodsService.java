@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swqs.schooltrade.entity.Goods;
+import com.swqs.schooltrade.entity.User;
 import com.swqs.schooltrade.repository.IGoodsRepository;
 
 @Component
@@ -41,5 +42,12 @@ public class DefalutGoodsService implements IGoodsService {
 		PageRequest request = new PageRequest(page, size, sort);
 		return goodsRepo.searchGoodsWithKeyword(keyword, request);
 	}
+
+	@Override
+	public Goods findOne(int goods_id) {
+		// TODO Auto-generated method stub
+		return goodsRepo.findOne(goods_id);
+	}
+
 
 }

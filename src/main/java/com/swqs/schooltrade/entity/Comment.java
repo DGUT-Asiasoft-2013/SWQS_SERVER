@@ -1,15 +1,19 @@
 package com.swqs.schooltrade.entity;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import org.hibernate.annotations.ColumnDefault;
+
+import com.fasterxml.jackson.databind.ser.std.StdKeySerializers.Default;
 import com.swqs.schooltrade.util.DateRecord;
 
 @Entity
 public class Comment extends DateRecord {
 	Goods goods;
 	User account;
-	Comment comment;
+	Comment parentComment;
 	String text;
 
 	@ManyToOne(optional = false)
@@ -30,13 +34,13 @@ public class Comment extends DateRecord {
 		this.account = account;
 	}
 
-	@ManyToOne(optional = false)
-	public Comment getComment() {
-		return comment;
+	@ManyToOne(optional = true)
+	public Comment getParentComment() {
+		return parentComment;
 	}
 
-	public void setComment(Comment comment) {
-		this.comment = comment;
+	public void setParentComment(Comment parentComment) {
+		this.parentComment = parentComment;
 	}
 
 	public String getText() {

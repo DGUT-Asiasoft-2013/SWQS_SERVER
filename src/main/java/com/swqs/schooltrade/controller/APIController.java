@@ -18,11 +18,15 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.swqs.schooltrade.entity.Comment;
 import com.swqs.schooltrade.entity.Goods;
+import com.swqs.schooltrade.entity.Identify;
 import com.swqs.schooltrade.entity.Image;
 import com.swqs.schooltrade.entity.School;
 import com.swqs.schooltrade.entity.User;
+import com.swqs.schooltrade.service.ICommentService;
 import com.swqs.schooltrade.service.IGoodsService;
+import com.swqs.schooltrade.service.IIdentifyService;
 import com.swqs.schooltrade.service.IImageService;
 import com.swqs.schooltrade.service.ISchoolService;
 import com.swqs.schooltrade.service.IUserService;
@@ -39,6 +43,10 @@ public class APIController {
 	IGoodsService goodsService;
 	@Autowired
 	IImageService imageService;
+	@Autowired
+	ICommentService commentService;
+	@Autowired
+	IIdentifyService identifyService;
 
 	@RequestMapping(value = "/hello", method = RequestMethod.GET)
 	public @ResponseBody String hello() {
@@ -78,7 +86,7 @@ public class APIController {
 	}
 
 	// 登录接口
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	@RequestMapping(value = "/login", method = RequestMethod.GET)
 	public @ResponseBody User login(@RequestParam(name = "account") String account,
 			@RequestParam(name = "password") String passwordHash, HttpServletRequest request) {
 		User user = userService.findUserByAccount(account);
@@ -177,4 +185,43 @@ public class APIController {
 			@RequestParam(defaultValue = "0") int page) {
 		return goodsService.searchGoodsWithKeyword(keyword, page);
 	} 
+	
+	//商品添加评论接口
+	@RequestMapping(value = "/goods/{goods_id}/comments" , method = RequestMethod.GET)
+	public Comment addParentComment(@PathVariable int goods_id,@RequestParam String text, HttpServletRequest request){
+		User me = getUser(request);
+		Goods goods = goodsService.findOne(goods_id);
+		Comment comment = new Comment();
+		comment.setAccount(me);
+		comment.setGoods(goods);
+		comment.setText(text);
+		return commentService.save(comment);
+	}
+	
+	//评论添加评论接口
+	@RequestMapping(value = "/goods/{goods_id}/parentcomments/{comment_id}/comments",method = RequestMethod.GET)
+	public Comment addComment(@PathVariable int goods_id,@PathVariable int comment_id,@RequestParam String text , HttpServletRequest request){
+		User me =getUser(request);
+		Goods goods = goodsService.findOne(goods_id);
+		Comment parrentComment = commentService.findOne(comment_id);
+		Comment comment = new Comment();
+		comment.setAccount(me);
+		comment.setGoods(goods);
+		comment.setText(text);
+		comment.setParentComment(parrentComment);
+		return commentService.save(comment);
+	}
+	
+	//购买商品接口
+	@RequestMapping(value = "/buygoods/{goods_id}",method = RequestMethod.GET)
+	public Identify buygoods(@PathVariable int goods_id,HttpServletRequest request){
+		User me = getUser(request);
+		Goods goods = goodsService.findOne(goods_id);
+		Identify identfy = new Identify();
+		identfy.setBuyer(me);
+		identfy.setGoods(goods);
+		identfy.setSeller(goods.getAccount());
+		identfy.setTradeState((short) 1);
+		return identifyService.save(identfy);
+	}
 }

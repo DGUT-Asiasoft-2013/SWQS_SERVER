@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 
 import com.swqs.schooltrade.entity.Goods;
+import com.swqs.schooltrade.entity.User;
 
 public interface IGoodsService {
 
@@ -13,5 +14,8 @@ public interface IGoodsService {
 	List<Goods> getListGoods();
 
 	Page<Goods> searchGoodsWithKeyword(String keyword, int page);
+
+	Goods findOne(int goods_id);
+
 
 }
