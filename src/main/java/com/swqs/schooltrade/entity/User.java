@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.ManyToOne;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.swqs.schooltrade.util.DateRecord;
@@ -11,7 +12,7 @@ import com.swqs.schooltrade.util.DateRecord;
 @Entity
 public class User extends DateRecord {
 	String account;
-	String password;
+	String passwordHash;
 	short sex;
 	Date birthday;
 	String phone;
@@ -32,12 +33,12 @@ public class User extends DateRecord {
 
 	@Column(nullable = false)
 	@JsonIgnore
-	public String getPassword() {
-		return password;
+	public String getPasswordHash() {
+		return passwordHash;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setPasswordHash(String passwordHash) {
+		this.passwordHash = passwordHash;
 	}
 
 	@Column(nullable = false)
@@ -101,7 +102,7 @@ public class User extends DateRecord {
 		this.email = email;
 	}
 
-	@Column(nullable = false)
+	@ManyToOne(optional = false)
 	public School getSchool() {
 		return school;
 	}

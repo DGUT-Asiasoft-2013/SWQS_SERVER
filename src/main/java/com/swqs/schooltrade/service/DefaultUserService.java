@@ -15,30 +15,11 @@ public class DefaultUserService implements IUserService {
 
 	@Autowired
 	IUserRepository userRepo;
-	
+
 	@Override
 	public User create(User user) {
 		return userRepo.save(user);
 	}
-
-//
-//	@Override
-//	public User getCurrentUser() {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
-//
-//	@Override
-//	public boolean changePassword(String newPasswordHash) {
-//		// TODO Auto-generated method stub
-//		return false;
-//	}
-//
-//	@Override
-//	public void logout() {
-//		// TODO Auto-generated method stub
-//
-//	}
 
 	@Override
 	public User findUserByAccount(String account) {
@@ -56,8 +37,8 @@ public class DefaultUserService implements IUserService {
 	}
 
 	@Override
-	public int updatePwd(String account, String password) {
-		return userRepo.updatePwd(password, account);
+	public int updatePwd(String passwordHash, String account) {
+		return userRepo.updatePwd(passwordHash, account);
 	}
 
 }

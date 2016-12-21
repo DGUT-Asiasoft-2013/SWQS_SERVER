@@ -3,21 +3,23 @@ package com.swqs.schooltrade.entity;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.swqs.schooltrade.util.BaseEntity;
 
 @Entity
 public class Image extends BaseEntity {
 
-	Goods goodsId;
+	Goods goods;
 	String pictureUrl;
 
+	@JsonIgnore
 	@ManyToOne(optional = false)
-	public Goods getGoodsId() {
-		return goodsId;
+	public Goods getGoods() {
+		return goods;
 	}
 
-	public void setGoodsId(Goods goodsId) {
-		this.goodsId = goodsId;
+	public void setGoods(Goods goods) {
+		this.goods = goods;
 	}
 
 	public String getPictureUrl() {

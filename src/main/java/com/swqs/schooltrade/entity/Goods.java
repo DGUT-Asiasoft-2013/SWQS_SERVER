@@ -1,8 +1,13 @@
 package com.swqs.schooltrade.entity;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 
 import com.swqs.schooltrade.util.DateRecord;
 
@@ -11,9 +16,20 @@ public class Goods extends DateRecord {
 
 	String title;
 	String content;
-	User accountId;
+	User account;
 	float originalPrice;
 	float curPrice;
+	List<Image> listImage;
+
+	
+	@OneToMany(fetch = FetchType.LAZY,mappedBy = "goods")
+	public List<Image> getListImage() {
+		return listImage;
+	}
+
+	public void setListImage(List<Image> listImage) {
+		this.listImage = listImage;
+	}
 
 	@Column(nullable = false)
 	public String getTitle() {
@@ -33,12 +49,12 @@ public class Goods extends DateRecord {
 	}
 
 	@ManyToOne(optional = false)
-	public User getAccountId() {
-		return accountId;
+	public User getAccount() {
+		return account;
 	}
 
-	public void setAccountId(User accountId) {
-		this.accountId = accountId;
+	public void setAccount(User account) {
+		this.account = account;
 	}
 
 	public float getOriginalPrice() {

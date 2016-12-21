@@ -7,34 +7,36 @@ import com.swqs.schooltrade.util.DateRecord;
 
 @Entity
 public class Comment extends DateRecord {
-	Goods goodsId;
-	User accountId;
-	Comment commentId;
+	Goods goods;
+	User account;
+	Comment comment;
 	String text;
 
 	@ManyToOne(optional = false)
-	public Goods getGoodsId() {
-		return goodsId;
+	public Goods getGoods() {
+		return goods;
 	}
 
-	public void setGoodsId(Goods goodsId) {
-		this.goodsId = goodsId;
+	public void setGoods(Goods goods) {
+		this.goods = goods;
 	}
 
-	public User getAccountId() {
-		return accountId;
+	@ManyToOne(optional = false)
+	public User getAccount() {
+		return account;
 	}
 
-	public void setAccountId(User accountId) {
-		this.accountId = accountId;
+	public void setAccount(User account) {
+		this.account = account;
 	}
 
-	public Comment getCommentId() {
-		return commentId;
+	@ManyToOne(optional = false)
+	public Comment getComment() {
+		return comment;
 	}
 
-	public void setCommentId(Comment commentId) {
-		this.commentId = commentId;
+	public void setComment(Comment comment) {
+		this.comment = comment;
 	}
 
 	public String getText() {

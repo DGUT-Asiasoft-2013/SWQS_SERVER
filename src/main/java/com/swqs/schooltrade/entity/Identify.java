@@ -2,42 +2,44 @@ package com.swqs.schooltrade.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-
-import org.hibernate.annotations.ColumnDefault;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
 import com.swqs.schooltrade.util.BaseEntity;
 
 @Entity
 public class Identify extends BaseEntity {
 
-	Goods goodsId;
-	User buyerId;
-	User sellerId;
+	Goods goods;
+	User buyer;
+	User seller;
 	short tradeState;
 
-	@Column(unique = true)
-	public Goods getGoodsId() {
-		return goodsId;
+	@OneToOne(optional = false)
+	public Goods getGoods() {
+		return goods;
 	}
 
-	public void setGoodsId(Goods goodsId) {
-		this.goodsId = goodsId;
+	public void setGoods(Goods goods) {
+		this.goods = goods;
 	}
 
-	public User getBuyerId() {
-		return buyerId;
+	@ManyToOne(optional = false)
+	public User getBuyer() {
+		return buyer;
 	}
 
-	public void setBuyerId(User buyerId) {
-		this.buyerId = buyerId;
+	public void setBuyer(User buyer) {
+		this.buyer = buyer;
 	}
 
-	public User getSellerId() {
-		return sellerId;
+	@ManyToOne(optional = false)
+	public User getSeller() {
+		return seller;
 	}
 
-	public void setSellerId(User sellerId) {
-		this.sellerId = sellerId;
+	public void setSeller(User seller) {
+		this.seller = seller;
 	}
 
 	public short getTradeState() {
