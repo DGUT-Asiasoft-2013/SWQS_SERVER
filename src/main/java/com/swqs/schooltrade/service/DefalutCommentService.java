@@ -1,5 +1,7 @@
 package com.swqs.schooltrade.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,12 @@ public class DefalutCommentService implements ICommentService {
 	public Comment findOne(int comment_id) {
 		// TODO Auto-generated method stub
 		return commentRepo.findOne(comment_id);
+	}
+
+	@Override
+	public List<Comment> getListCommentByGoodsId(int goods_id) {
+		// TODO Auto-generated method stub
+		return commentRepo.getListCommentByGoodsId(goods_id);
 	}
 
 	

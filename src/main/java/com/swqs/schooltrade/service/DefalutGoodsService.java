@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swqs.schooltrade.entity.Goods;
-import com.swqs.schooltrade.entity.User;
 import com.swqs.schooltrade.repository.IGoodsRepository;
 
 @Component
@@ -49,5 +48,16 @@ public class DefalutGoodsService implements IGoodsService {
 		return goodsRepo.findOne(goods_id);
 	}
 
+	@Override
+	public List<Goods> getMySellGoodslist(Integer id) {
+		// TODO Auto-generated method stub
+		return goodsRepo.findMySellGoodslist(id);
+	}
+
+	@Override
+	public List<Goods> getMyBuyGoodslist(Integer id) {
+		// TODO Auto-generated method stub
+		return goodsRepo.findMyBuyGoodslist(id);
+	}
 
 }

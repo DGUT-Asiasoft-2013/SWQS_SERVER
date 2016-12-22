@@ -59,9 +59,16 @@ public class APIController {
 			@RequestParam(name = "password") String passwordHash, @RequestParam(name = "email") String email,
 			@RequestParam(name = "name") String name, @RequestParam(name = "birthday") long birthday,
 			@RequestParam(name = "phone") String phone, @RequestParam(name = "sex") short sex,
-			@RequestParam(name = "schoolId") int schoolId, MultipartFile avatar, HttpServletRequest request) {
+			@RequestParam(name = "schoolId") int schoolId, HttpServletRequest request) {
 
 		School school = schoolService.findSchoolById(schoolId);
+		//寻找数据库中是否有同样用户名account的用户
+		User userIsExist = userService.findUserByAccount(account);
+		if(userIsExist != null){		
+			//如果存在，返回空
+			return null;
+		}
+		//不存在，则注册用户
 		User user = new User();
 		user.setAccount(account);
 		user.setPasswordHash(passwordHash);
@@ -70,31 +77,23 @@ public class APIController {
 		user.setBirthday(new Date(birthday));
 		user.setPhone(phone);
 		user.setSex(sex);
-		user.setSchool(school);
-
-		if (avatar != null) {
-			try {
-				String realPath = request.getSession().getServletContext().getRealPath("/WEB-INF/upload/avatar");
-				FileUtils.copyInputStreamToFile(avatar.getInputStream(), new File(realPath, account + ".png"));
-				user.setFace_url("upload/avatar/" + account + ".png");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
+		user.setSchool(school);		
 		return userService.create(user);
 	}
 
 	// 登录接口
-	@RequestMapping(value = "/login", method = RequestMethod.GET)
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public @ResponseBody User login(@RequestParam(name = "account") String account,
 			@RequestParam(name = "password") String passwordHash, HttpServletRequest request) {
 		User user = userService.findUserByAccount(account);
+		//判断用户是否存在且密码是否正确
 		if (user != null && passwordHash.equals(user.getPasswordHash())) {
+			//用户存在且密码正确则登录成功
 			HttpSession session = request.getSession(true);
 			session.setAttribute("uid", user.getId());
 			return user;
 		} else {
+			//否则提示用户名不存在或密码错误
 			return null;
 		}
 	}
@@ -110,16 +109,23 @@ public class APIController {
 	// 验证邮箱接口
 	@RequestMapping(value = "/inputemail", method = RequestMethod.POST)
 	public @ResponseBody User email(@RequestParam(name = "email") String email, HttpServletRequest request) {
+		//通过邮箱寻找用户
 		User user = userService.findUserByEmail(email);
+		if(user ==null){
+			//若不存在用户，则邮箱错误或不存在
+			return null;
+		}
+		//否则，返回用户
 		return user;
 	}
 
 	// 修改密码接口
+	//先通过验证邮箱接口再使用修改密码接口
 	@RequestMapping(value = "/updatePwd", method = RequestMethod.POST)
 	public @ResponseBody int updataPwd(@RequestParam(name = "password") String passwordHash,
 			@RequestParam(name = "account") String account, HttpServletRequest request) {
-		return userService.updatePwd(passwordHash, account);
 		// 返回int 1 既修改密码成功
+		return userService.updatePwd(passwordHash, account);
 	}
 
 	// 学校名称接口
@@ -161,6 +167,7 @@ public class APIController {
 	}
 
 	// 获取商品列表方法1
+	//就用这种方法
 	@RequestMapping(value = "/getlistgoods", method = RequestMethod.GET)
 	public List<Goods> getListGoods() {
 		return goodsService.getListGoods();
@@ -180,15 +187,18 @@ public class APIController {
 	}
 
 	// 搜索商品接口
-	@RequestMapping(value = "/goods/search/{keyword}",method = RequestMethod.GET)
+	// 需传入keyword（即搜索的关键字），返回包含该关键字的商品列表
+	@RequestMapping(value = "/goods/search/{keyword}", method = RequestMethod.GET)
 	public Page<Goods> searchArticleWithKeyword(@PathVariable String keyword,
 			@RequestParam(defaultValue = "0") int page) {
 		return goodsService.searchGoodsWithKeyword(keyword, page);
-	} 
-	
-	//商品添加评论接口
-	@RequestMapping(value = "/goods/{goods_id}/comments" , method = RequestMethod.GET)
-	public Comment addParentComment(@PathVariable int goods_id,@RequestParam String text, HttpServletRequest request){
+	}
+
+	// 商品添加评论接口
+	// 在商品列表Item中传入goods到商品详情Activity，
+	// 需传入goods_id,从goods中获取
+	@RequestMapping(value = "/goods/{goods_id}/addParentComments", method = RequestMethod.POST)
+	public Comment addParentComment(@PathVariable int goods_id, @RequestParam String text, HttpServletRequest request) {
 		User me = getUser(request);
 		Goods goods = goodsService.findOne(goods_id);
 		Comment comment = new Comment();
@@ -197,11 +207,15 @@ public class APIController {
 		comment.setText(text);
 		return commentService.save(comment);
 	}
-	
-	//评论添加评论接口
-	@RequestMapping(value = "/goods/{goods_id}/parentcomments/{comment_id}/comments",method = RequestMethod.GET)
-	public Comment addComment(@PathVariable int goods_id,@PathVariable int comment_id,@RequestParam String text , HttpServletRequest request){
-		User me =getUser(request);
+
+	// 评论添加评论接口
+	// 在商品列表Item中传入goods到商品详情Activity，再传入添加评论Activity
+	// 在评论列表Item中传入comment到添加评论Activity
+	// 需传入goods_id,comment_id,从goods、comment中获取
+	@RequestMapping(value = "/goods/{goods_id}/parentcomments/{comment_id}/addComments", method = RequestMethod.POST)
+	public Comment addComment(@PathVariable int goods_id, @PathVariable int comment_id, @RequestParam String text,
+			HttpServletRequest request) {
+		User me = getUser(request);
 		Goods goods = goodsService.findOne(goods_id);
 		Comment parrentComment = commentService.findOne(comment_id);
 		Comment comment = new Comment();
@@ -211,10 +225,12 @@ public class APIController {
 		comment.setParentComment(parrentComment);
 		return commentService.save(comment);
 	}
-	
-	//购买商品接口
-	@RequestMapping(value = "/buygoods/{goods_id}",method = RequestMethod.GET)
-	public Identify buygoods(@PathVariable int goods_id,HttpServletRequest request){
+
+	// 购买商品接口
+	// 在商品列表Item中传入goods到商品详情Activity
+	// 需传入goods_id,从goods中获取
+	@RequestMapping(value = "/buygoods/{goods_id}", method = RequestMethod.POST)
+	public Identify buyGoods(@PathVariable int goods_id, HttpServletRequest request) {
 		User me = getUser(request);
 		Goods goods = goodsService.findOne(goods_id);
 		Identify identfy = new Identify();
@@ -223,5 +239,50 @@ public class APIController {
 		identfy.setSeller(goods.getAccount());
 		identfy.setTradeState((short) 1);
 		return identifyService.save(identfy);
+	}
+
+	// 获取我卖出的商品列表
+	@RequestMapping(value = "/mysell/goodslist", method = RequestMethod.GET)
+	public List<Goods> getMySellGoodslist(HttpServletRequest request) {
+		User me = getUser(request);
+		Identify identify = identifyService.getGoodsIdBySellerId(me.getId());
+		if (identify == null) {
+			return null;
+		} else {
+			return goodsService.getMySellGoodslist(identify.getGoods().getId());
+		}
+	}
+
+	// 获取我购买的商品列表
+	@RequestMapping(value = "/mybuy/goodslist", method = RequestMethod.GET)
+	public List<Goods> getMyBuyGoodslist(HttpServletRequest request) {
+		User me = getUser(request);
+		Identify identify = identifyService.getGoodsIdByBuyerId(me.getId());
+		if (identify == null) {
+			return null;
+		} else {
+			return goodsService.getMyBuyGoodslist(identify.getGoods().getId());
+		}
+	}
+
+	// 显示订单详情接口
+	// 在我卖出/购入商品列表Item中传入goods到订单详情Activity
+	// 需传入goods_id,从goods中获取
+	@RequestMapping(value = "/orderdetails/{goods_id}", method = RequestMethod.GET)
+	public Identify getOrderDetails(@PathVariable int goods_id) {
+		Identify identify =  identifyService.findIdentifyByGoodsId(goods_id);
+		if(identify == null){
+			return null;
+		}else{
+			return identify;
+		}
+	}
+	
+	//显示商品评论
+	// 在商品列表Item中传入goods到商品详情Activity
+	// 需传入goods_id,从goods中获取
+	@RequestMapping(value = "/goods/{goods_id}/comments",method = RequestMethod.GET)
+	public List<Comment> getListComment(@PathVariable int goods_id){
+		return commentService.getListCommentByGoodsId(goods_id);
 	}
 }
