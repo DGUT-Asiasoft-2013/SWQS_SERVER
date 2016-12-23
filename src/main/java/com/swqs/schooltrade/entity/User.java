@@ -16,7 +16,7 @@ public class User extends DateRecord {
 	short sex;
 	Date birthday;
 	String phone;
-	int balance;
+	float balance;
 	String face_url;
 	String name;
 	String email;
@@ -68,11 +68,11 @@ public class User extends DateRecord {
 		this.phone = phone;
 	}
 
-	public int getBalance() {
+	public float getBalance() {
 		return balance;
 	}
 
-	public void setBalance(int balance) {
+	public void setBalance(float balance) {
 		this.balance = balance;
 	}
 

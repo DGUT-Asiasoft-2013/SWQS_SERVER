@@ -16,9 +16,9 @@ public interface IGoodsService {
 
 	Goods findOne(int goods_id);
 
-	List<Goods> getMySellGoodslist(Integer id);
+	Goods getMySellGoodslist(Integer id);
 
-	List<Goods> getMyBuyGoodslist(Integer id);
+	Goods getMyBuyGoodslist(Integer id);
 
 
 

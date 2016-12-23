@@ -49,13 +49,13 @@ public class DefalutGoodsService implements IGoodsService {
 	}
 
 	@Override
-	public List<Goods> getMySellGoodslist(Integer id) {
+	public Goods getMySellGoodslist(Integer id) {
 		// TODO Auto-generated method stub
 		return goodsRepo.findMySellGoodslist(id);
 	}
 
 	@Override
-	public List<Goods> getMyBuyGoodslist(Integer id) {
+	public Goods getMyBuyGoodslist(Integer id) {
 		// TODO Auto-generated method stub
 		return goodsRepo.findMyBuyGoodslist(id);
 	}

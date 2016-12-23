@@ -13,4 +13,14 @@ public interface IUserService {
 
 	int updatePwd(String passwordHash, String account);
 
+	User findUserByPhone(String phone);
+
+	User findUserByName(String name);
+
+	int setSellerBalance(float curPrice,Integer id);
+
+	int setBuyerBalance(float curPrice, Integer id);
+
+
+
 }

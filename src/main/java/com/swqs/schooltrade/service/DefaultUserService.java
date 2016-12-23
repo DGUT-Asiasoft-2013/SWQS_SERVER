@@ -41,4 +41,30 @@ public class DefaultUserService implements IUserService {
 		return userRepo.updatePwd(passwordHash, account);
 	}
 
+	@Override
+	public User findUserByPhone(String phone) {
+		// TODO Auto-generated method stub
+		return userRepo.findUserByPhone(phone);
+	}
+
+	@Override
+	public User findUserByName(String name) {
+		// TODO Auto-generated method stub
+		return userRepo.findUserByName(name);
+	}
+
+	@Override
+	public int setSellerBalance(float curPrice,Integer id) {
+		// TODO Auto-generated method stub
+		return userRepo.setSellerBalance(curPrice,id);
+	}
+
+	@Override
+	public int setBuyerBalance(float curPrice, Integer id) {
+		// TODO Auto-generated method stub
+		return userRepo.setBuyerBalance(curPrice,id);
+	}
+
+
+
 }

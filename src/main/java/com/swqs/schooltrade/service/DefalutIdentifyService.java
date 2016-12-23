@@ -1,5 +1,7 @@
 package com.swqs.schooltrade.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -23,13 +25,13 @@ public class DefalutIdentifyService implements IIdentifyService {
 	}
 
 	@Override
-	public Identify getGoodsIdBySellerId(Integer id) {
+	public List<Identify> getGoodsIdBySellerId(Integer id) {
 		// TODO Auto-generated method stub
 		return identifyRepo.getGoodsIdBySellerId(id);
 	}
 
 	@Override
-	public Identify getGoodsIdByBuyerId(Integer id) {
+	public List<Identify> getGoodsIdByBuyerId(Integer id) {
 		// TODO Auto-generated method stub
 		return identifyRepo.getGoodsIdByBuyerId(id);
 	}

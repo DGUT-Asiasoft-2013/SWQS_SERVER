@@ -20,10 +20,10 @@ public interface IGoodsRepository extends PagingAndSortingRepository<Goods, Inte
 	Page<Goods> searchGoodsWithKeyword(String keyword, Pageable page);
 
 	@Query("from Goods goods where goods.id = ?1")
-	List<Goods> findMyBuyGoodslist(Integer id);
+	Goods findMyBuyGoodslist(Integer id);
 
 	@Query("from Goods goods where goods.id = ?1")
-	List<Goods> findMySellGoodslist(Integer id);
+	Goods findMySellGoodslist(Integer id);
 
 
 }
