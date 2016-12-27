@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.Transient;
 
 import com.swqs.schooltrade.util.DateRecord;
 
@@ -20,6 +19,7 @@ public class Goods extends DateRecord {
 	float originalPrice;
 	float curPrice;
 	List<Image> listImage;
+	boolean isSell;
 
 	
 	@OneToMany(fetch = FetchType.LAZY,mappedBy = "goods")
@@ -73,4 +73,15 @@ public class Goods extends DateRecord {
 		this.curPrice = curPrice;
 	}
 
+	public boolean isSell() {
+		return isSell;
+	}
+
+	public void setSell(boolean isSell) {
+		this.isSell = isSell;
+	}
+
+	
+
+	
 }

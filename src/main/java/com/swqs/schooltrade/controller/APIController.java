@@ -21,15 +21,19 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.swqs.schooltrade.entity.Comment;
 import com.swqs.schooltrade.entity.Goods;
+import com.swqs.schooltrade.entity.GoodsLike;
 import com.swqs.schooltrade.entity.Identify;
 import com.swqs.schooltrade.entity.Image;
 import com.swqs.schooltrade.entity.School;
 import com.swqs.schooltrade.entity.User;
+import com.swqs.schooltrade.entity.UserLike;
 import com.swqs.schooltrade.service.ICommentService;
+import com.swqs.schooltrade.service.IGoodsLikeService;
 import com.swqs.schooltrade.service.IGoodsService;
 import com.swqs.schooltrade.service.IIdentifyService;
 import com.swqs.schooltrade.service.IImageService;
 import com.swqs.schooltrade.service.ISchoolService;
+import com.swqs.schooltrade.service.IUserLikeService;
 import com.swqs.schooltrade.service.IUserService;
 
 @RestController
@@ -48,6 +52,10 @@ public class APIController {
 	ICommentService commentService;
 	@Autowired
 	IIdentifyService identifyService;
+	@Autowired
+	IGoodsLikeService goodsLikeService;
+	@Autowired
+	IUserLikeService userLikeService;
 
 	@RequestMapping(value = "/hello", method = RequestMethod.GET)
 	public @ResponseBody String hello() {
@@ -191,6 +199,23 @@ public class APIController {
 		return schoolService.findSchoolName();
 	}
 
+	// 修改头像接口
+	@RequestMapping(value = "/updateFace", method = RequestMethod.POST)
+	public User updateFace(MultipartFile avatar, HttpServletRequest request) {
+		User user = getUser(request);
+		if (avatar != null) {
+			try {
+				String realPath = request.getSession().getServletContext().getRealPath("/WEB-INF/upload");
+				FileUtils.copyInputStreamToFile(avatar.getInputStream(),
+						new File(realPath, user.getAccount() + ".png"));
+				user.setFace_url("upload/" + user.getAccount() + ".png");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return userService.create(user);
+	}
+
 	// 发布商品接口
 	@RequestMapping(value = "/addgoods", method = RequestMethod.POST)
 	public Goods addGoods(@RequestParam(name = "title") String title, @RequestParam(name = "content") String content,
@@ -287,18 +312,28 @@ public class APIController {
 	// 购买商品接口
 	// 在商品列表Item中传入goods到商品详情Activity
 	// 需传入goods_id,从goods中获取
-	@RequestMapping(value = "/buygoods/{goods_id}", method = RequestMethod.GET)
-	public Identify buyGoods(@PathVariable int goods_id, HttpServletRequest request) {
+	@RequestMapping(value = "/buygoods/{goods_id}", method = RequestMethod.POST)
+	public String buyGoods(@PathVariable int goods_id, @RequestParam String password, HttpServletRequest request) {
 		User me = getUser(request);
+		String flag = null;
+		if (!password.equals(me.getPasswordHash())) {
+			// 密码不正确
+			flag = "passwordIsNotRight";
+			return flag;
+		}
 		Goods goods = goodsService.findOne(goods_id);
 		Identify identfy = new Identify();
 		identfy.setBuyer(me);
 		identfy.setGoods(goods);
 		identfy.setSeller(goods.getAccount());
 		identfy.setTradeState((short) 1);
-		userService.setSellerBalance(goods.getCurPrice(), goods.getAccount().getId());
+		User root = userService.findUserById(1);
+		userService.setRootBalance(root.getBalance()+goods.getCurPrice());
 		userService.setBuyerBalance(me.getBalance() - goods.getCurPrice(), me.getId());
-		return identifyService.save(identfy);
+		goodsService.setSell(goods_id);
+		identifyService.save(identfy);
+		flag = "Success";
+		return flag;
 	}
 
 	// 获取我卖出的商品列表
@@ -309,8 +344,8 @@ public class APIController {
 		if (listIdentify == null) {
 			return null;
 		} else {
-			List<Goods> goodsList=new ArrayList<Goods>();
-			for(Identify identify:listIdentify){
+			List<Goods> goodsList = new ArrayList<Goods>();
+			for (Identify identify : listIdentify) {
 				goodsList.add(goodsService.getMySellGoodslist(identify.getGoods().getId()));
 			}
 			return goodsList;
@@ -325,8 +360,8 @@ public class APIController {
 		if (listIdentify == null) {
 			return null;
 		} else {
-			List<Goods> goodsList=new ArrayList<Goods>();
-			for(Identify identify:listIdentify){
+			List<Goods> goodsList = new ArrayList<Goods>();
+			for (Identify identify : listIdentify) {
 				goodsList.add(goodsService.getMyBuyGoodslist(identify.getGoods().getId()));
 			}
 			return goodsList;
@@ -358,7 +393,74 @@ public class APIController {
 	@RequestMapping(value = "/recharge", method = RequestMethod.POST)
 	public User rechargeMoney(@RequestParam int money, HttpServletRequest request) {
 		User me = getUser(request);
-		me.setBalance(money);
+		me.setBalance(money + me.getBalance());
 		return userService.create(me);
 	}
+
+	// 用户评价商品接口
+	@RequestMapping(value = "/goods/{goods_id}/goodslike", method = RequestMethod.GET)
+	public GoodsLike goodsLike(@PathVariable int goods_id, @RequestParam Boolean isLike, HttpServletRequest request) {
+		User me = getUser(request);
+		GoodsLike like = new GoodsLike();
+		Goods goods = goodsService.findOne(goods_id);
+		if (isLike) {
+			like.setGoods(goods);
+			like.setAccount(me);
+			like.setIsLike(isLike);
+			return goodsLikeService.like(like);
+		}
+		like.setGoods(goods);
+		like.setAccount(me);
+		like.setIsLike(isLike);
+		return goodsLikeService.disLike(like);
+	}
+
+	// 用户评价用户接口
+	@RequestMapping(value = "/user/{user_id}/userlike", method = RequestMethod.GET)
+	public UserLike userLike(@PathVariable int user_id, @RequestParam Boolean isLike, HttpServletRequest request) {
+		User me = getUser(request);
+		UserLike like = new UserLike();
+		User assessee = userService.findUserById(user_id);
+		if (isLike) {
+			like.setAssessee(assessee);
+			like.setEvaluator(me);
+			like.setIsLike(isLike);
+			return userLikeService.like(like);
+		}
+		like.setAssessee(assessee);
+		like.setEvaluator(me);
+		like.setIsLike(isLike);
+		return userLikeService.disLike(like);
+	}
+
+	// 商品好评/差评数量显示接口
+	@RequestMapping(value = "/goodslike/{goods_id}/count", method = RequestMethod.GET)
+	public int[] getGoodsLikeCount(@PathVariable int goods_id) {
+		int[] count = new int[2];
+		int countLike = goodsLikeService.countLike(goods_id);
+		;
+		int countDisLike = goodsLikeService.countDisLike(goods_id);
+		count[0] = countLike;
+		count[1] = countDisLike;
+		return count;
+	}
+
+	// 用户好评/差评数量显示接口
+	@RequestMapping(value = "/userlike/{user_id}/count", method = RequestMethod.GET)
+	public int[] getUserLikeCount(@PathVariable int user_id) {
+		int[] count = new int[2];
+		int countLike = userLikeService.countLike(user_id);
+		;
+		int countDisLike = userLikeService.countDisLike(user_id);
+		count[0] = countLike;
+		count[1] = countDisLike;
+		return count;
+	}
+	
+	// 获取我发布的商品列表
+		@RequestMapping(value = "/mypublishment/goodslist", method = RequestMethod.GET)
+		public List<Goods> getMyPublishmentGoodslist(HttpServletRequest request) {
+			User me = getUser(request);
+			return goodsService.getMyPublishmentGoodslist(me.getId());
+			}
 }

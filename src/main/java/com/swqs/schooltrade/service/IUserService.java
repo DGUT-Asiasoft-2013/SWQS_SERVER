@@ -21,6 +21,8 @@ public interface IUserService {
 
 	int setBuyerBalance(float curPrice, Integer id);
 
+	int setRootBalance(float curPrice);
+
 
 
 }

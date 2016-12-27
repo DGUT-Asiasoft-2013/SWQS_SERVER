@@ -27,11 +27,14 @@ public interface IUserRepository extends PagingAndSortingRepository<User, Intege
 
 	@Modifying
 	@Query("update User u set u.balance = ?1 where u.id = ?2")
-	public int setSellerBalance(float curPrice,Integer id);
+	public int setSellerBalance(float curPrice, Integer id);
 
 	@Modifying
 	@Query("update User u set u.balance = ?1 where u.id = ?2")
 	public int setBuyerBalance(float curPrice, Integer id);
 
+	@Modifying
+	@Query("update User u set u.balance =?1 where u.id = 1")
+	public int setRootBalance(float curPrice);
 
 }

@@ -20,6 +20,10 @@ public interface IGoodsService {
 
 	Goods getMyBuyGoodslist(Integer id);
 
+	int setSell(int goods_id);
+
+	List<Goods> getMyPublishmentGoodslist(Integer id);
+
 
 
 }

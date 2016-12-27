@@ -1,6 +1,5 @@
 package com.swqs.schooltrade.entity;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;

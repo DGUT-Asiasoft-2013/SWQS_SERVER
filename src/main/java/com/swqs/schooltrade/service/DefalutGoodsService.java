@@ -60,4 +60,16 @@ public class DefalutGoodsService implements IGoodsService {
 		return goodsRepo.findMyBuyGoodslist(id);
 	}
 
+	@Override
+	public int setSell(int goods_id) {
+		// TODO Auto-generated method stub
+		return goodsRepo.setSell(goods_id);
+	}
+
+	@Override
+	public List<Goods> getMyPublishmentGoodslist(Integer id) {
+		// TODO Auto-generated method stub
+		return goodsRepo.findMyPublishmentGoodslist(id);
+	}
+
 }

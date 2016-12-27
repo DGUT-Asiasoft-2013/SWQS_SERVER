@@ -6,11 +6,11 @@ import javax.persistence.ManyToOne;
 import com.swqs.schooltrade.util.DateRecord;
 
 @Entity
-public class Comment extends DateRecord {
+public class GoodsLike extends DateRecord {
+
 	Goods goods;
 	User account;
-	Comment parentComment;
-	String text;
+	Boolean isLike;
 
 	@ManyToOne(optional = false)
 	public Goods getGoods() {
@@ -30,21 +30,12 @@ public class Comment extends DateRecord {
 		this.account = account;
 	}
 
-	@ManyToOne(optional = true)
-	public Comment getParentComment() {
-		return parentComment;
+	public Boolean getIsLike() {
+		return isLike;
 	}
 
-	public void setParentComment(Comment parentComment) {
-		this.parentComment = parentComment;
-	}
-
-	public String getText() {
-		return text;
-	}
-
-	public void setText(String text) {
-		this.text = text;
+	public void setIsLike(Boolean isLike) {
+		this.isLike = isLike;
 	}
 
 }

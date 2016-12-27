@@ -65,6 +65,12 @@ public class DefaultUserService implements IUserService {
 		return userRepo.setBuyerBalance(curPrice,id);
 	}
 
+	@Override
+	public int setRootBalance(float curPrice) {
+		// TODO Auto-generated method stub
+		return userRepo.setRootBalance(curPrice);
+	}
+
 
 
 }
