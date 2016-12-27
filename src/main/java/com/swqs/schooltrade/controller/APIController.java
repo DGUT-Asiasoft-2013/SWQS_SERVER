@@ -328,7 +328,7 @@ public class APIController {
 		identfy.setSeller(goods.getAccount());
 		identfy.setTradeState((short) 1);
 		User root = userService.findUserById(1);
-		userService.setRootBalance(root.getBalance()+goods.getCurPrice());
+		userService.setRootBalance(root.getBalance() + goods.getCurPrice());
 		userService.setBuyerBalance(me.getBalance() - goods.getCurPrice(), me.getId());
 		goodsService.setSell(goods_id);
 		identifyService.save(identfy);
@@ -456,11 +456,75 @@ public class APIController {
 		count[1] = countDisLike;
 		return count;
 	}
-	
+
 	// 获取我发布的商品列表
-		@RequestMapping(value = "/mypublishment/goodslist", method = RequestMethod.GET)
-		public List<Goods> getMyPublishmentGoodslist(HttpServletRequest request) {
-			User me = getUser(request);
-			return goodsService.getMyPublishmentGoodslist(me.getId());
-			}
+	@RequestMapping(value = "/mypublishment/goodslist", method = RequestMethod.GET)
+	public List<Goods> getMyPublishmentGoodslist(HttpServletRequest request) {
+		User me = getUser(request);
+		return goodsService.getMyPublishmentGoodslist(me.getId());
+	}
+
+	// 已发货、确认收货、已评价设置标志接口
+	// flag=2（确认发货） flag=3（确认收货）
+	@RequestMapping(value = "/settradestate", method = RequestMethod.POST)
+	public int setTradestate(@RequestParam int identifyId, @RequestParam int flag) {
+		short tradestate = (short) flag;
+		Identify identify = identifyService.findIdentifyById(identifyId);
+		if (tradestate == 2) {
+			return identifyService.setTradeStateById(tradestate, identify.getId());
+		} else if (tradestate == 3) {
+			return identifyService.setTradeStateById(tradestate, identify.getId());
+		}
+		return 5;
+	}
+
+	// 修改资料接口
+	@RequestMapping(value = "/updateme", method = RequestMethod.POST)
+	public User updateMe(@RequestParam(name = "email") String email, @RequestParam(name = "name") String name,
+			@RequestParam(name = "birthday") long birthday, @RequestParam(name = "phone") String phone,
+			@RequestParam(name = "schoolId") int schoolId, HttpServletRequest request) {
+		User me = getUser(request);
+		School school = schoolService.findSchoolById(schoolId);
+		// 寻找数据库中是否有同样邮箱email的用户
+		User emailIsExist = userService.findUserByEmail(email);
+		// 寻找数据库中是否有同样电话phone的用户
+		User phoneIsExist = userService.findUserByPhone(phone);
+		// 寻找数据库中是否有同样昵称name的用户
+		User nameIsExist = userService.findUserByName(name);
+		// 设置一个标志给予客户端进行判断
+		User flag = new User();
+		if (phoneIsExist != null) {
+			// 如果存在电话号码，则返回字符串phoneExist
+			flag.setAccount("phoneExist");
+			return flag;
+		}
+		if (emailIsExist != null) {
+			// 如果存在邮箱，则返回字符串emailExist
+			flag.setAccount("emailExist");
+			return flag;
+		}
+		if (nameIsExist != null) {
+			// 如果存在昵称，则返回字符串nameExist
+			flag.setAccount("nameExist");
+			return flag;
+		}
+		me.setEmail(email);
+		me.setName(name);
+		me.setBirthday(new Date(birthday));
+		me.setPhone(phone);
+		me.setSchool(school);
+		return userService.create(me);
+	}
+
+	// 修改商品接口
+	@RequestMapping(value = "/updategoods/{goods_id}", method = RequestMethod.POST)
+	public Goods updateGoods(@PathVariable int goods_id, @RequestParam(name = "title") String title,
+			@RequestParam(name = "content") String content, @RequestParam(name = "curPrice") float curPrice) {
+		Goods curGoods = goodsService.findOne(goods_id);
+		curGoods.setTitle(title);
+		curGoods.setContent(content);
+		curGoods.setCurPrice(curPrice);
+		return goodsService.save(curGoods);
+	}
+	
 }

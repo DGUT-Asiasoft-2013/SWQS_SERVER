@@ -14,4 +14,11 @@ public interface IIdentifyService {
 
 	Identify findIdentifyByGoodsId(Integer goods_id);
 
+	Identify findIdentifyById(int identifyId);
+
+	int setTradeStateById(short tradestate, Integer id);
+
+
+
+
 }

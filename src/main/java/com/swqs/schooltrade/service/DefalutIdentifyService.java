@@ -41,4 +41,17 @@ public class DefalutIdentifyService implements IIdentifyService {
 		// TODO Auto-generated method stub
 		return identifyRepo.findIdentifyByGoodsId(id);
 	}
+
+	@Override
+	public Identify findIdentifyById(int identifyId) {
+		// TODO Auto-generated method stub
+		return identifyRepo.findIdentifyById(identifyId);
+	}
+
+	@Override
+	public int setTradeStateById(short tradestate, Integer id) {
+		// TODO Auto-generated method stub
+		return identifyRepo.setTradeStateById(tradestate,id);
+	}
+
 }
