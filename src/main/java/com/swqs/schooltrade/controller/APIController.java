@@ -473,6 +473,11 @@ public class APIController {
 		if (tradestate == 2) {
 			return identifyService.setTradeStateById(tradestate, identify.getId());
 		} else if (tradestate == 3) {
+			User root = userService.findUserById(1);
+			Goods goods = goodsService.findOne(identify.getGoods().getId());
+			User seller = userService.findUserById(identify.getSeller().getId());
+			userService.setRootBalance(root.getBalance() - goods.getCurPrice());
+			userService.setSellerBalance(seller.getBalance() + goods.getCurPrice(), seller.getId());
 			return identifyService.setTradeStateById(tradestate, identify.getId());
 		}
 		return 5;
@@ -488,25 +493,32 @@ public class APIController {
 		// 寻找数据库中是否有同样邮箱email的用户
 		User emailIsExist = userService.findUserByEmail(email);
 		// 寻找数据库中是否有同样电话phone的用户
-		User phoneIsExist = userService.findUserByPhone(phone);
+		// User phoneIsExist = userService.findUserByPhone(phone);
 		// 寻找数据库中是否有同样昵称name的用户
 		User nameIsExist = userService.findUserByName(name);
 		// 设置一个标志给予客户端进行判断
 		User flag = new User();
-		if (phoneIsExist != null) {
-			// 如果存在电话号码，则返回字符串phoneExist
-			flag.setAccount("phoneExist");
-			return flag;
+		if (!me.getPhone().equals(phone)) {
+			User phoneIsExist = userService.findUserByPhone(phone);
+			if (phoneIsExist != null) {
+				// 如果存在电话号码，则返回字符串phoneExist
+				flag.setAccount("phoneExist");
+				return flag;
+			}
 		}
-		if (emailIsExist != null) {
-			// 如果存在邮箱，则返回字符串emailExist
-			flag.setAccount("emailExist");
-			return flag;
+		if (!me.getEmail().equals(email)) {
+			if (emailIsExist != null) {
+				// 如果存在邮箱，则返回字符串emailExist
+				flag.setAccount("emailExist");
+				return flag;
+			}
 		}
-		if (nameIsExist != null) {
-			// 如果存在昵称，则返回字符串nameExist
-			flag.setAccount("nameExist");
-			return flag;
+		if (!me.getName().equals(name)) {
+			if (nameIsExist != null) {
+				// 如果存在昵称，则返回字符串nameExist
+				flag.setAccount("nameExist");
+				return flag;
+			}
 		}
 		me.setEmail(email);
 		me.setName(name);
@@ -526,5 +538,5 @@ public class APIController {
 		curGoods.setCurPrice(curPrice);
 		return goodsService.save(curGoods);
 	}
-	
+
 }

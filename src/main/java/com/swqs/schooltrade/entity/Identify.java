@@ -5,9 +5,10 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 
 import com.swqs.schooltrade.util.BaseEntity;
+import com.swqs.schooltrade.util.DateRecord;
 
 @Entity
-public class Identify extends BaseEntity {
+public class Identify extends DateRecord {
 
 	Goods goods;
 	User buyer;
