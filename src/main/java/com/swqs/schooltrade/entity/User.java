@@ -41,7 +41,6 @@ public class User extends DateRecord {
 		this.passwordHash = passwordHash;
 	}
 
-	@Column(nullable = false)
 	public short getSex() {
 		return sex;
 	}
@@ -49,8 +48,7 @@ public class User extends DateRecord {
 	public void setSex(short sex) {
 		this.sex = sex;
 	}
-
-	@Column(nullable = false)
+	
 	public Date getBirthday() {
 		return birthday;
 	}
@@ -59,7 +57,7 @@ public class User extends DateRecord {
 		this.birthday = birthday;
 	}
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true)
 	public String getPhone() {
 		return phone;
 	}

@@ -16,8 +16,8 @@ public interface IUserRepository extends PagingAndSortingRepository<User, Intege
 	public User findUserByEmail(String email);
 
 	@Modifying
-	@Query("update User u set u.passwordHash = ?1 where u.account = ?2")
-	public int updatePwd(String password, String account);
+	@Query("update User u set u.passwordHash = ?1 where u.email = ?2")
+	public int updatePwdByEmail(String password, String email);
 
 	@Query("from User u where u.phone = ?1")
 	public User findUserByPhone(String phone);

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -19,14 +20,17 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.swqs.schooltrade.entity.Collection;
 import com.swqs.schooltrade.entity.Comment;
 import com.swqs.schooltrade.entity.Goods;
 import com.swqs.schooltrade.entity.GoodsLike;
 import com.swqs.schooltrade.entity.Identify;
 import com.swqs.schooltrade.entity.Image;
+import com.swqs.schooltrade.entity.Mail;
 import com.swqs.schooltrade.entity.School;
 import com.swqs.schooltrade.entity.User;
 import com.swqs.schooltrade.entity.UserLike;
+import com.swqs.schooltrade.service.ICollectionService;
 import com.swqs.schooltrade.service.ICommentService;
 import com.swqs.schooltrade.service.IGoodsLikeService;
 import com.swqs.schooltrade.service.IGoodsService;
@@ -56,6 +60,8 @@ public class APIController {
 	IGoodsLikeService goodsLikeService;
 	@Autowired
 	IUserLikeService userLikeService;
+	@Autowired
+	ICollectionService collectionService;
 
 	@RequestMapping(value = "/hello", method = RequestMethod.GET)
 	public @ResponseBody String hello() {
@@ -64,79 +70,120 @@ public class APIController {
 
 	// 注册接口
 	@RequestMapping(value = "/register", method = RequestMethod.POST)
-	public @ResponseBody User register(@RequestParam(name = "account") String account,
-			@RequestParam(name = "password") String passwordHash, @RequestParam(name = "email") String email,
-			@RequestParam(name = "name") String name, @RequestParam(name = "birthday") long birthday,
-			@RequestParam(name = "phone") String phone, @RequestParam(name = "sex") short sex,
+	public @ResponseBody User register(@RequestParam(name = "email") String email,
+			@RequestParam(name = "account") String account, @RequestParam(name = "password") String passwordHash,
 			@RequestParam(name = "schoolId") int schoolId, HttpServletRequest request) {
-
 		School school = schoolService.findSchoolById(schoolId);
 		// 寻找数据库中是否有同样用户名account的用户
 		User accountIsExist = userService.findUserByAccount(account);
-		// 寻找数据库中是否有同样邮箱email的用户
-		User emailIsExist = userService.findUserByEmail(email);
-		// 寻找数据库中是否有同样电话phone的用户
-		User phoneIsExist = userService.findUserByPhone(phone);
-		// 寻找数据库中是否有同样昵称name的用户
-		User nameIsExist = userService.findUserByName(name);
-		// 设置一个标志给予客户端进行判断
+;		// 设置一个标志给予客户端进行判断
 		User flag = new User();
 		if (accountIsExist != null) {
 			// 如果存在账号，则返回字符串accountExist
 			flag.setAccount("accountExist");
 			return flag;
 		}
-		if (phoneIsExist != null) {
-			// 如果存在电话号码，则返回字符串phoneExist
-			flag.setAccount("phoneExist");
-			return flag;
-		}
-		if (emailIsExist != null) {
-			// 如果存在邮箱，则返回字符串emailExist
-			flag.setAccount("emailExist");
-			return flag;
-		}
-		if (nameIsExist != null) {
-			// 如果存在昵称，则返回字符串nameExist
-			flag.setAccount("nameExist");
-			return flag;
-		}
-
-		// 不存在，则注册用户
 		User user = new User();
+		user.setEmail(email);
 		user.setAccount(account);
 		user.setPasswordHash(passwordHash);
-		user.setEmail(email);
-		user.setName(name);
-		user.setBirthday(new Date(birthday));
-		user.setPhone(phone);
-		user.setSex(sex);
+		user.setName(account);
 		user.setSchool(school);
+		user.setFace_url("upload/avatar/face.jpg");
 		return userService.create(user);
 	}
 
+	// // 注册接口
+	// @RequestMapping(value = "/register", method = RequestMethod.POST)
+	// public @ResponseBody User register(@RequestParam(name = "account") String
+	// account,
+	// @RequestParam(name = "password") String passwordHash, @RequestParam(name
+	// = "email") String email,
+	// @RequestParam(name = "name") String name, @RequestParam(name =
+	// "birthday") long birthday,
+	// @RequestParam(name = "phone") String phone, @RequestParam(name = "sex")
+	// short sex,
+	// @RequestParam(name = "schoolId") int schoolId, HttpServletRequest
+	// request) {
+	//
+	// School school = schoolService.findSchoolById(schoolId);
+	// // 寻找数据库中是否有同样用户名account的用户
+	// User accountIsExist = userService.findUserByAccount(account);
+	// // 寻找数据库中是否有同样邮箱email的用户
+	// User emailIsExist = userService.findUserByEmail(email);
+	// // 寻找数据库中是否有同样电话phone的用户
+	// User phoneIsExist = userService.findUserByPhone(phone);
+	// // 寻找数据库中是否有同样昵称name的用户
+	// User nameIsExist = userService.findUserByName(name);
+	// // 设置一个标志给予客户端进行判断
+	// User flag = new User();
+	// if (accountIsExist != null) {
+	// // 如果存在账号，则返回字符串accountExist
+	// flag.setAccount("accountExist");
+	// return flag;
+	// }
+	// if (phoneIsExist != null) {
+	// // 如果存在电话号码，则返回字符串phoneExist
+	// flag.setAccount("phoneExist");
+	// return flag;
+	// }
+	// if (emailIsExist != null) {
+	// // 如果存在邮箱，则返回字符串emailExist
+	// flag.setAccount("emailExist");
+	// return flag;
+	// }
+	// if (nameIsExist != null) {
+	// // 如果存在昵称，则返回字符串nameExist
+	// flag.setAccount("nameExist");
+	// return flag;
+	// }
+	//
+	// // 不存在，则注册用户
+	// User user = new User();
+	// user.setAccount(account);
+	// user.setPasswordHash(passwordHash);
+	// user.setEmail(email);
+	// user.setName(name);
+	// user.setBirthday(new Date(birthday));
+	// user.setPhone(phone);
+	// user.setSex(sex);
+	// user.setSchool(school);
+	// return userService.create(user);
+	// }
+
 	// 登录接口
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
-	public @ResponseBody User login(@RequestParam(name = "account") String account,
+	public @ResponseBody User login(@RequestParam(name = "accountOrEmail") String accountOrEmail,
 			@RequestParam(name = "password") String passwordHash, HttpServletRequest request) {
-		User user = userService.findUserByAccount(account);
+		User account = userService.findUserByAccount(accountOrEmail);
+		User email = userService.findUserByEmail(accountOrEmail);
 		User flag = new User();
 
-		if (user == null) {
-			flag.setAccount("accountIsNotExist");
+		if (account == null && email == null) {
+			flag.setAccount("userIsNotExist");
 			return flag;
 		}
-
 		// 判断用户密码是否正确
-		if (passwordHash.equals(user.getPasswordHash())) {
-			// 用户存在且密码正确则登录成功
-			HttpSession session = request.getSession(true);
-			session.setAttribute("uid", user.getId());
-			return user;
+		//判断是否用account登录，否则用email登录
+		if (account != null) {
+			if (passwordHash.equals(account.getPasswordHash())) {
+				// 用户存在且密码正确则登录成功
+				HttpSession session = request.getSession(true);
+				session.setAttribute("uid", account.getId());
+				return account;
+			}
+			flag.setAccount("passwordIsNotRight");
+			return flag;
+		}else{
+			if (passwordHash.equals(email.getPasswordHash())) {
+				// 用户存在且密码正确则登录成功
+				HttpSession session = request.getSession(true);
+				session.setAttribute("uid", email.getId());
+				return email;
+			}
+			flag.setAccount("passwordIsNotRight");
+			return flag;
 		}
-		flag.setAccount("passwordIsNotRight");
-		return flag;
-
 	}
 
 	// 登录test接口
@@ -171,26 +218,77 @@ public class APIController {
 		return userService.findUserById(uid);
 	}
 
-	// 验证邮箱接口
-	@RequestMapping(value = "/inputemail", method = RequestMethod.POST)
-	public @ResponseBody User email(@RequestParam(name = "email") String email, HttpServletRequest request) {
+	// 注册账号验证邮箱接口
+	@RequestMapping(value = "/registerCehckEmail", method = RequestMethod.POST)
+	public @ResponseBody boolean registerCehckEmail(@RequestParam(name = "email") String email,
+			HttpServletRequest request) {
+		User emailIsExist = userService.findUserByEmail(email);
+		if (emailIsExist != null) {
+			return false;
+		}
+		Mail mail = new Mail();
+		try {
+			int code = new Random().nextInt(900000) + 100000;
+			String message = String.format("您好，欢迎使用校园跳蚤\n您的注册邮箱验证码为:%d\n若不是本人操作，请忽略", code);
+			mail.sendMail(email, "校园跳蚤验证码", message);
+			HttpSession session = request.getSession(true);
+			session.setAttribute("code", code);
+			System.out.println("成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+	// 修改密码验证邮箱接口
+	@RequestMapping(value = "/passwordCheckEmail", method = RequestMethod.POST)
+	public @ResponseBody boolean passwordCheckEmail(@RequestParam(name = "email") String email,
+			HttpServletRequest request) {
 		// 通过邮箱寻找用户
 		User user = userService.findUserByEmail(email);
 		if (user == null) {
 			// 若不存在用户，则邮箱错误或不存在
-			return null;
+			return false;
 		}
 		// 否则，返回用户
-		return user;
+		Mail mail = new Mail();
+		try {
+			int code = new Random().nextInt(900000) + 100000;
+			String message = String.format("您好，欢迎使用校园跳蚤\n您的修改密码验证码为:%d\n若不是本人操作，请忽略", code);
+			mail.sendMail(email, "校园跳蚤验证码", message);
+			HttpSession session = request.getSession(true);
+			session.setAttribute("code", code);
+			System.out.println("成功");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return true;
+	}
+
+	// 验证验证码接口
+	@RequestMapping(value = "/checkcode", method = RequestMethod.POST)
+	public boolean checkCode(@RequestParam(name = "code") String code, HttpServletRequest request) {
+		HttpSession session = request.getSession(true);
+		int emailCode = (int) session.getAttribute("code");
+		System.out.println("emailCode==============" + emailCode);
+		if (code.equals(emailCode + "")) {
+			return true;
+		}
+		return false;
 	}
 
 	// 修改密码接口
 	// 先通过验证邮箱接口再使用修改密码接口
 	@RequestMapping(value = "/updatePwd", method = RequestMethod.POST)
-	public @ResponseBody int updataPwd(@RequestParam(name = "password") String passwordHash,
-			@RequestParam(name = "account") String account, HttpServletRequest request) {
+	public @ResponseBody User updataPwd(@RequestParam(name = "password") String passwordHash,
+			@RequestParam(name = "email") String email, HttpServletRequest request) {
 		// 返回int 1 既修改密码成功
-		return userService.updatePwd(passwordHash, account);
+
+		int flag = userService.updatePwdByEmail(passwordHash, email);
+		if (flag == 1) {
+			return userService.findUserByEmail(email);
+		}
+		return null;
 	}
 
 	// 学校名称接口
@@ -205,10 +303,10 @@ public class APIController {
 		User user = getUser(request);
 		if (avatar != null) {
 			try {
-				String realPath = request.getSession().getServletContext().getRealPath("/WEB-INF/upload");
+				String realPath = request.getSession().getServletContext().getRealPath("/WEB-INF/upload/avatar");
 				FileUtils.copyInputStreamToFile(avatar.getInputStream(),
 						new File(realPath, user.getAccount() + ".png"));
-				user.setFace_url("upload/" + user.getAccount() + ".png");
+				user.setFace_url("upload/avatar/" + user.getAccount() + ".png");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -485,33 +583,26 @@ public class APIController {
 
 	// 修改资料接口
 	@RequestMapping(value = "/updateme", method = RequestMethod.POST)
-	public User updateMe(@RequestParam(name = "email") String email, @RequestParam(name = "name") String name,
-			@RequestParam(name = "birthday") long birthday, @RequestParam(name = "phone") String phone,
-			@RequestParam(name = "schoolId") int schoolId, HttpServletRequest request) {
+	public User updateMe(@RequestParam(name = "name") String name, @RequestParam(name = "birthday") long birthday,
+			@RequestParam(name = "phone") String phone, @RequestParam(name = "schoolId") int schoolId,
+			@RequestParam(name = "sex") short sex, HttpServletRequest request) {
 		User me = getUser(request);
 		School school = schoolService.findSchoolById(schoolId);
-		// 寻找数据库中是否有同样邮箱email的用户
-		User emailIsExist = userService.findUserByEmail(email);
 		// 寻找数据库中是否有同样电话phone的用户
 		// User phoneIsExist = userService.findUserByPhone(phone);
 		// 寻找数据库中是否有同样昵称name的用户
 		User nameIsExist = userService.findUserByName(name);
 		// 设置一个标志给予客户端进行判断
 		User flag = new User();
-		if (!me.getPhone().equals(phone)) {
+
+		if (me.getPhone() == null || !me.getPhone().equals(phone)) {
 			User phoneIsExist = userService.findUserByPhone(phone);
 			if (phoneIsExist != null) {
 				// 如果存在电话号码，则返回字符串phoneExist
 				flag.setAccount("phoneExist");
 				return flag;
 			}
-		}
-		if (!me.getEmail().equals(email)) {
-			if (emailIsExist != null) {
-				// 如果存在邮箱，则返回字符串emailExist
-				flag.setAccount("emailExist");
-				return flag;
-			}
+
 		}
 		if (!me.getName().equals(name)) {
 			if (nameIsExist != null) {
@@ -520,9 +611,11 @@ public class APIController {
 				return flag;
 			}
 		}
-		me.setEmail(email);
+		me.setSex(sex);
 		me.setName(name);
+		if(birthday!=0){
 		me.setBirthday(new Date(birthday));
+		}
 		me.setPhone(phone);
 		me.setSchool(school);
 		return userService.create(me);
@@ -539,4 +632,37 @@ public class APIController {
 		return goodsService.save(curGoods);
 	}
 
+	// 收藏商品接口
+	@RequestMapping(value = "/collectGoods/{goods_id}", method = RequestMethod.GET)
+	public int collectGoods(@PathVariable int goods_id, @RequestParam boolean collection, HttpServletRequest request) {
+		User me = getUser(request);
+		Goods curGoods = goodsService.findOne(goods_id);
+		if (collection) {
+			collectionService.addCollection(me, curGoods);
+		} else {
+			collectionService.removeCollection(me, curGoods);
+		}
+
+		return collectionService.countCollection(goods_id);
+	}
+
+	// 商品被收藏数接口
+	@RequestMapping(value = "/goods/{goods_id}/countCollection", method = RequestMethod.GET)
+	public int countLikes(@PathVariable int goods_id) {
+		return collectionService.countCollection(goods_id);
+	}
+
+	// 商品是否被收藏接口
+	@RequestMapping(value = "/goods/{goods_id}/isCollection", method = RequestMethod.GET)
+	public boolean checkCollection(@PathVariable int goods_id, HttpServletRequest request) {
+		User me = getUser(request);
+		return collectionService.checkCollection(me.getId(), goods_id);
+	}
+	
+	// 我的收藏接口
+	@RequestMapping(value = "/myCollection",method = RequestMethod.GET)
+	public List<Collection> getMyCollection(HttpServletRequest request){
+		User me = getUser(request);
+		return collectionService.getMyCollection(me.getId());
+	}
 }

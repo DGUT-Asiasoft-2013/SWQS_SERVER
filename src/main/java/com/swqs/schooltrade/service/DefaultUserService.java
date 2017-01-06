@@ -37,8 +37,8 @@ public class DefaultUserService implements IUserService {
 	}
 
 	@Override
-	public int updatePwd(String passwordHash, String account) {
-		return userRepo.updatePwd(passwordHash, account);
+	public int updatePwdByEmail(String passwordHash, String email) {
+		return userRepo.updatePwdByEmail(passwordHash, email);
 	}
 
 	@Override

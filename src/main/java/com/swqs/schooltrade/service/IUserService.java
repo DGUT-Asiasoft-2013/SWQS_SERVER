@@ -11,7 +11,7 @@ public interface IUserService {
 
 	User findUserByEmail(String email);
 
-	int updatePwd(String passwordHash, String account);
+	int updatePwdByEmail(String passwordHash, String email);
 
 	User findUserByPhone(String phone);
 
