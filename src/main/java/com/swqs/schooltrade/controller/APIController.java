@@ -3,7 +3,9 @@ package com.swqs.schooltrade.controller;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +41,7 @@ import com.swqs.schooltrade.service.IImageService;
 import com.swqs.schooltrade.service.ISchoolService;
 import com.swqs.schooltrade.service.IUserLikeService;
 import com.swqs.schooltrade.service.IUserService;
+import com.swqs.schooltrade.util.PushToClient;
 
 @RestController
 @RequestMapping("/api")
@@ -76,7 +79,7 @@ public class APIController {
 		School school = schoolService.findSchoolById(schoolId);
 		// 寻找数据库中是否有同样用户名account的用户
 		User accountIsExist = userService.findUserByAccount(account);
-;		// 设置一个标志给予客户端进行判断
+		; // 设置一个标志给予客户端进行判断
 		User flag = new User();
 		if (accountIsExist != null) {
 			// 如果存在账号，则返回字符串accountExist
@@ -164,7 +167,7 @@ public class APIController {
 			return flag;
 		}
 		// 判断用户密码是否正确
-		//判断是否用account登录，否则用email登录
+		// 判断是否用account登录，否则用email登录
 		if (account != null) {
 			if (passwordHash.equals(account.getPasswordHash())) {
 				// 用户存在且密码正确则登录成功
@@ -174,7 +177,7 @@ public class APIController {
 			}
 			flag.setAccount("passwordIsNotRight");
 			return flag;
-		}else{
+		} else {
 			if (passwordHash.equals(email.getPasswordHash())) {
 				// 用户存在且密码正确则登录成功
 				HttpSession session = request.getSession(true);
@@ -431,7 +434,18 @@ public class APIController {
 		goodsService.setSell(goods_id);
 		identifyService.save(identfy);
 		flag = "Success";
+		Map<String, String> extra = new HashMap<String, String>();
+		extra.put("goods_id", goods.getId() + "");
+		extra.put("pushType", "1");
+		PushToClient.sendPush("发货通知", "您的商品\"" + goods.getTitle() + "\"已被\"" + identfy.getBuyer().getAccount() + "\"购买，请及时发货",
+				identfy.getSeller().getAccount(), extra);
 		return flag;
+	}
+
+	// 获取一个商品接口
+	@RequestMapping(value = "/getGoods", method = RequestMethod.GET)
+	public Goods getGoods(@RequestParam int goods_id) {
+		return goodsService.findOne(goods_id);
 	}
 
 	// 获取我卖出的商品列表
@@ -569,6 +583,12 @@ public class APIController {
 		short tradestate = (short) flag;
 		Identify identify = identifyService.findIdentifyById(identifyId);
 		if (tradestate == 2) {
+			//确认发货发送推送
+			Map<String, String> extra = new HashMap<String, String>();
+			extra.put("goods_id", identify.getGoods().getId()+ "");
+			extra.put("pushType", "2");
+			PushToClient.sendPush("商家已发货", "您购买的商品\"" + identify.getGoods().getTitle() + "\"已经发货",
+					identify.getBuyer().getAccount(), extra);
 			return identifyService.setTradeStateById(tradestate, identify.getId());
 		} else if (tradestate == 3) {
 			User root = userService.findUserById(1);
@@ -576,6 +596,12 @@ public class APIController {
 			User seller = userService.findUserById(identify.getSeller().getId());
 			userService.setRootBalance(root.getBalance() - goods.getCurPrice());
 			userService.setSellerBalance(seller.getBalance() + goods.getCurPrice(), seller.getId());
+			//确认收货发送推送
+			Map<String, String> extra = new HashMap<String, String>();
+			extra.put("goods_id", identify.getGoods().getId()+ "");
+			extra.put("pushType", "3");
+			PushToClient.sendPush("买家已收货", "您上架的商品\"" + identify.getGoods().getTitle() + "\"已经被接收",
+					identify.getSeller().getAccount(), extra);
 			return identifyService.setTradeStateById(tradestate, identify.getId());
 		}
 		return 5;
@@ -613,8 +639,8 @@ public class APIController {
 		}
 		me.setSex(sex);
 		me.setName(name);
-		if(birthday!=0){
-		me.setBirthday(new Date(birthday));
+		if (birthday != 0) {
+			me.setBirthday(new Date(birthday));
 		}
 		me.setPhone(phone);
 		me.setSchool(school);
@@ -658,10 +684,10 @@ public class APIController {
 		User me = getUser(request);
 		return collectionService.checkCollection(me.getId(), goods_id);
 	}
-	
+
 	// 我的收藏接口
-	@RequestMapping(value = "/myCollection",method = RequestMethod.GET)
-	public List<Collection> getMyCollection(HttpServletRequest request){
+	@RequestMapping(value = "/myCollection", method = RequestMethod.GET)
+	public List<Collection> getMyCollection(HttpServletRequest request) {
 		User me = getUser(request);
 		return collectionService.getMyCollection(me.getId());
 	}

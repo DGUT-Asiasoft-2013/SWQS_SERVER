@@ -30,7 +30,7 @@ public interface IGoodsRepository extends PagingAndSortingRepository<Goods, Inte
 	@Query("update Goods goods set goods.sell = 1 where goods.id = ?1")
 	int setSell(int goods_id);
 
-	@Query("from Goods goods where goods.account.id = ?1")
+	@Query("from Goods goods where goods.account.id = ?1 order by createDate DESC")
 	List<Goods> findMyPublishmentGoodslist(Integer id);
 
 

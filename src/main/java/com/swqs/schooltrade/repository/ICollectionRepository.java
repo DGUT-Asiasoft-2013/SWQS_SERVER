@@ -17,7 +17,7 @@ public interface ICollectionRepository extends PagingAndSortingRepository<Collec
 	@Query("select count(*) from Collection collection where collection.id.user.id = ?1 and collection.id.goods.id = ?2")
 	int checkcollectionExsists(int authorId, int articleId);
 
-	@Query("from Collection collection where collection.id.user.id = ?1")
+	@Query("from Collection collection where collection.id.user.id = ?1 order by createDate DESC")
 	List<Collection> getMyCollection(Integer id);
 
 }
