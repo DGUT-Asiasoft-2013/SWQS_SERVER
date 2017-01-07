@@ -450,34 +450,16 @@ public class APIController {
 
 	// 获取我卖出的商品列表
 	@RequestMapping(value = "/mysell/goodslist", method = RequestMethod.GET)
-	public List<Goods> getMySellGoodslist(HttpServletRequest request) {
+	public List<Identify> getMySellGoodslist(HttpServletRequest request) {
 		User me = getUser(request);
-		List<Identify> listIdentify = identifyService.getGoodsIdBySellerId(me.getId());
-		if (listIdentify == null) {
-			return null;
-		} else {
-			List<Goods> goodsList = new ArrayList<Goods>();
-			for (Identify identify : listIdentify) {
-				goodsList.add(goodsService.getMySellGoodslist(identify.getGoods().getId()));
-			}
-			return goodsList;
-		}
+		return  identifyService.getGoodsIdBySellerId(me.getId());
 	}
 
 	// 获取我购买的商品列表
 	@RequestMapping(value = "/mybuy/goodslist", method = RequestMethod.GET)
-	public List<Goods> getMyBuyGoodslist(HttpServletRequest request) {
+	public List<Identify> getMyBuyGoodslist(HttpServletRequest request) {
 		User me = getUser(request);
-		List<Identify> listIdentify = identifyService.getGoodsIdByBuyerId(me.getId());
-		if (listIdentify == null) {
-			return null;
-		} else {
-			List<Goods> goodsList = new ArrayList<Goods>();
-			for (Identify identify : listIdentify) {
-				goodsList.add(goodsService.getMyBuyGoodslist(identify.getGoods().getId()));
-			}
-			return goodsList;
-		}
+		return identifyService.getGoodsIdByBuyerId(me.getId());
 	}
 
 	// 显示订单详情接口
