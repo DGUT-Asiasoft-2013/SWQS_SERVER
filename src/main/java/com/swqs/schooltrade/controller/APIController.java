@@ -1,7 +1,6 @@
 package com.swqs.schooltrade.controller;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -157,7 +156,7 @@ public class APIController {
 	// 登录接口
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public @ResponseBody User login(@RequestParam(name = "accountOrEmail") String accountOrEmail,
-			@RequestParam(name = "password") String passwordHash, HttpServletRequest request) {
+			@RequestParam(name = "password") String passwordHash) {
 		User account = userService.findUserByAccount(accountOrEmail);
 		User email = userService.findUserByEmail(accountOrEmail);
 		User flag = new User();
@@ -171,8 +170,6 @@ public class APIController {
 		if (account != null) {
 			if (passwordHash.equals(account.getPasswordHash())) {
 				// 用户存在且密码正确则登录成功
-				HttpSession session = request.getSession(true);
-				session.setAttribute("uid", account.getId());
 				return account;
 			}
 			flag.setAccount("passwordIsNotRight");
@@ -180,8 +177,6 @@ public class APIController {
 		} else {
 			if (passwordHash.equals(email.getPasswordHash())) {
 				// 用户存在且密码正确则登录成功
-				HttpSession session = request.getSession(true);
-				session.setAttribute("uid", email.getId());
 				return email;
 			}
 			flag.setAccount("passwordIsNotRight");
@@ -214,10 +209,8 @@ public class APIController {
 	}
 
 	// 我的信息接口
-	@RequestMapping(value = "/me", method = RequestMethod.GET)
-	public User getUser(HttpServletRequest request) {
-		HttpSession session = request.getSession(true);
-		int uid = (int) session.getAttribute("uid");
+	@RequestMapping(value = "/me", method = RequestMethod.POST)
+	public User getUser(@RequestParam(name = "uid") int uid) {
 		return userService.findUserById(uid);
 	}
 
@@ -302,8 +295,8 @@ public class APIController {
 
 	// 修改头像接口
 	@RequestMapping(value = "/updateFace", method = RequestMethod.POST)
-	public User updateFace(MultipartFile avatar, HttpServletRequest request) {
-		User user = getUser(request);
+	public User updateFace(@RequestParam(name = "uid") int uid, MultipartFile avatar, HttpServletRequest request) {
+		User user = getUser(uid);
 		if (avatar != null) {
 			try {
 				String realPath = request.getSession().getServletContext().getRealPath("/WEB-INF/upload/avatar");
@@ -319,10 +312,10 @@ public class APIController {
 
 	// 发布商品接口
 	@RequestMapping(value = "/addgoods", method = RequestMethod.POST)
-	public Goods addGoods(@RequestParam(name = "title") String title, @RequestParam(name = "content") String content,
-			@RequestParam(name = "originalPrice") float originalPrice, MultipartFile[] listImage,
-			HttpServletRequest request) {
-		User currentUser = getUser(request);
+	public Goods addGoods(@RequestParam(name = "uid") int uid, @RequestParam(name = "title") String title,
+			@RequestParam(name = "content") String content, @RequestParam(name = "originalPrice") float originalPrice,
+			MultipartFile[] listImage, HttpServletRequest request) {
+		User currentUser = getUser(uid);
 		Goods goods = new Goods();
 		goods.setAccount(currentUser);
 		goods.setTitle(title);
@@ -382,8 +375,9 @@ public class APIController {
 	// 在商品列表Item中传入goods到商品详情Activity，
 	// 需传入goods_id,从goods中获取
 	@RequestMapping(value = "/goods/{goods_id}/addParentComments", method = RequestMethod.POST)
-	public Comment addParentComment(@PathVariable int goods_id, @RequestParam String text, HttpServletRequest request) {
-		User me = getUser(request);
+	public Comment addParentComment(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
+			@RequestParam String text) {
+		User me = getUser(uid);
 		Goods goods = goodsService.findOne(goods_id);
 		Comment comment = new Comment();
 		comment.setAccount(me);
@@ -397,9 +391,9 @@ public class APIController {
 	// 在评论列表Item中传入comment到添加评论Activity
 	// 需传入goods_id,comment_id,从goods、comment中获取
 	@RequestMapping(value = "/goods/{goods_id}/parentcomments/{comment_id}/addComments", method = RequestMethod.POST)
-	public Comment addComment(@PathVariable int goods_id, @PathVariable int comment_id, @RequestParam String text,
-			HttpServletRequest request) {
-		User me = getUser(request);
+	public Comment addComment(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
+			@PathVariable int comment_id, @RequestParam String text) {
+		User me = getUser(uid);
 		Goods goods = goodsService.findOne(goods_id);
 		Comment parrentComment = commentService.findOne(comment_id);
 		Comment comment = new Comment();
@@ -414,8 +408,9 @@ public class APIController {
 	// 在商品列表Item中传入goods到商品详情Activity
 	// 需传入goods_id,从goods中获取
 	@RequestMapping(value = "/buygoods/{goods_id}", method = RequestMethod.POST)
-	public String buyGoods(@PathVariable int goods_id, @RequestParam String password, HttpServletRequest request) {
-		User me = getUser(request);
+	public String buyGoods(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
+			@RequestParam String password) {
+		User me = getUser(uid);
 		String flag = null;
 		if (!password.equals(me.getPasswordHash())) {
 			// 密码不正确
@@ -437,7 +432,8 @@ public class APIController {
 		Map<String, String> extra = new HashMap<String, String>();
 		extra.put("goods_id", goods.getId() + "");
 		extra.put("pushType", "1");
-		PushToClient.sendPush("发货通知", "您的商品\"" + goods.getTitle() + "\"已被\"" + identfy.getBuyer().getAccount() + "\"购买，请及时发货",
+		PushToClient.sendPush("发货通知",
+				"您的商品\"" + goods.getTitle() + "\"已被\"" + identfy.getBuyer().getAccount() + "\"购买，请及时发货",
 				identfy.getSeller().getAccount(), extra);
 		return flag;
 	}
@@ -449,16 +445,16 @@ public class APIController {
 	}
 
 	// 获取我卖出的商品列表
-	@RequestMapping(value = "/mysell/goodslist", method = RequestMethod.GET)
-	public List<Identify> getMySellGoodslist(HttpServletRequest request) {
-		User me = getUser(request);
-		return  identifyService.getGoodsIdBySellerId(me.getId());
+	@RequestMapping(value = "/mysell/goodslist", method = RequestMethod.POST)
+	public List<Identify> getMySellGoodslist(@RequestParam(name = "uid") int uid) {
+		User me = getUser(uid);
+		return identifyService.getGoodsIdBySellerId(me.getId());
 	}
 
 	// 获取我购买的商品列表
-	@RequestMapping(value = "/mybuy/goodslist", method = RequestMethod.GET)
-	public List<Identify> getMyBuyGoodslist(HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/mybuy/goodslist", method = RequestMethod.POST)
+	public List<Identify> getMyBuyGoodslist(@RequestParam(name = "uid") int uid) {
+		User me = getUser(uid);
 		return identifyService.getGoodsIdByBuyerId(me.getId());
 	}
 
@@ -485,16 +481,17 @@ public class APIController {
 
 	// 充值金额接口
 	@RequestMapping(value = "/recharge", method = RequestMethod.POST)
-	public User rechargeMoney(@RequestParam int money, HttpServletRequest request) {
-		User me = getUser(request);
+	public User rechargeMoney(@RequestParam(name = "uid") int uid, @RequestParam int money) {
+		User me = getUser(uid);
 		me.setBalance(money + me.getBalance());
 		return userService.create(me);
 	}
 
 	// 用户评价商品接口
-	@RequestMapping(value = "/goods/{goods_id}/goodslike", method = RequestMethod.GET)
-	public GoodsLike goodsLike(@PathVariable int goods_id, @RequestParam Boolean isLike, HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/goods/{goods_id}/goodslike", method = RequestMethod.POST)
+	public GoodsLike goodsLike(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
+			@RequestParam Boolean isLike) {
+		User me = getUser(uid);
 		GoodsLike like = new GoodsLike();
 		Goods goods = goodsService.findOne(goods_id);
 		if (isLike) {
@@ -510,9 +507,10 @@ public class APIController {
 	}
 
 	// 用户评价用户接口
-	@RequestMapping(value = "/user/{user_id}/userlike", method = RequestMethod.GET)
-	public UserLike userLike(@PathVariable int user_id, @RequestParam Boolean isLike, HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/user/{user_id}/userlike", method = RequestMethod.POST)
+	public UserLike userLike(@RequestParam(name = "uid") int uid, @PathVariable int user_id,
+			@RequestParam Boolean isLike) {
+		User me = getUser(uid);
 		UserLike like = new UserLike();
 		User assessee = userService.findUserById(user_id);
 		if (isLike) {
@@ -540,7 +538,7 @@ public class APIController {
 	}
 
 	// 用户好评/差评数量显示接口
-	@RequestMapping(value = "/userlike/{user_id}/count", method = RequestMethod.GET)
+	@RequestMapping(value = "/userlike/{user_id}/count", method = RequestMethod.POST)
 	public int[] getUserLikeCount(@PathVariable int user_id) {
 		int[] count = new int[2];
 		int countLike = userLikeService.countLike(user_id);
@@ -552,9 +550,9 @@ public class APIController {
 	}
 
 	// 获取我发布的商品列表
-	@RequestMapping(value = "/mypublishment/goodslist", method = RequestMethod.GET)
-	public List<Goods> getMyPublishmentGoodslist(HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/mypublishment/goodslist", method = RequestMethod.POST)
+	public List<Goods> getMyPublishmentGoodslist(@RequestParam(name = "uid") int uid) {
+		User me = getUser(uid);
 		return goodsService.getMyPublishmentGoodslist(me.getId());
 	}
 
@@ -565,9 +563,9 @@ public class APIController {
 		short tradestate = (short) flag;
 		Identify identify = identifyService.findIdentifyById(identifyId);
 		if (tradestate == 2) {
-			//确认发货发送推送
+			// 确认发货发送推送
 			Map<String, String> extra = new HashMap<String, String>();
-			extra.put("goods_id", identify.getGoods().getId()+ "");
+			extra.put("goods_id", identify.getGoods().getId() + "");
 			extra.put("pushType", "2");
 			PushToClient.sendPush("商家已发货", "您购买的商品\"" + identify.getGoods().getTitle() + "\"已经发货",
 					identify.getBuyer().getAccount(), extra);
@@ -578,9 +576,9 @@ public class APIController {
 			User seller = userService.findUserById(identify.getSeller().getId());
 			userService.setRootBalance(root.getBalance() - goods.getCurPrice());
 			userService.setSellerBalance(seller.getBalance() + goods.getCurPrice(), seller.getId());
-			//确认收货发送推送
+			// 确认收货发送推送
 			Map<String, String> extra = new HashMap<String, String>();
-			extra.put("goods_id", identify.getGoods().getId()+ "");
+			extra.put("goods_id", identify.getGoods().getId() + "");
 			extra.put("pushType", "3");
 			PushToClient.sendPush("买家已收货", "您上架的商品\"" + identify.getGoods().getTitle() + "\"已经被接收",
 					identify.getSeller().getAccount(), extra);
@@ -591,10 +589,10 @@ public class APIController {
 
 	// 修改资料接口
 	@RequestMapping(value = "/updateme", method = RequestMethod.POST)
-	public User updateMe(@RequestParam(name = "name") String name, @RequestParam(name = "birthday") long birthday,
-			@RequestParam(name = "phone") String phone, @RequestParam(name = "schoolId") int schoolId,
-			@RequestParam(name = "sex") short sex, HttpServletRequest request) {
-		User me = getUser(request);
+	public User updateMe(@RequestParam(name = "uid") int uid, @RequestParam(name = "name") String name,
+			@RequestParam(name = "birthday") long birthday, @RequestParam(name = "phone") String phone,
+			@RequestParam(name = "schoolId") int schoolId, @RequestParam(name = "sex") short sex) {
+		User me = getUser(uid);
 		School school = schoolService.findSchoolById(schoolId);
 		// 寻找数据库中是否有同样电话phone的用户
 		// User phoneIsExist = userService.findUserByPhone(phone);
@@ -603,15 +601,18 @@ public class APIController {
 		// 设置一个标志给予客户端进行判断
 		User flag = new User();
 
-		if (me.getPhone() == null || !me.getPhone().equals(phone)) {
+		if (phone == null || phone.equals("")) {
+			me.setPhone(null);
+		} else {
 			User phoneIsExist = userService.findUserByPhone(phone);
-			if (phoneIsExist != null) {
+			if (phoneIsExist != null && !me.getPhone().equals(phoneIsExist.getPhone())) {
 				// 如果存在电话号码，则返回字符串phoneExist
 				flag.setAccount("phoneExist");
 				return flag;
 			}
-
+			me.setPhone(phone);
 		}
+
 		if (!me.getName().equals(name)) {
 			if (nameIsExist != null) {
 				// 如果存在昵称，则返回字符串nameExist
@@ -624,7 +625,6 @@ public class APIController {
 		if (birthday != 0) {
 			me.setBirthday(new Date(birthday));
 		}
-		me.setPhone(phone);
 		me.setSchool(school);
 		return userService.create(me);
 	}
@@ -641,9 +641,10 @@ public class APIController {
 	}
 
 	// 收藏商品接口
-	@RequestMapping(value = "/collectGoods/{goods_id}", method = RequestMethod.GET)
-	public int collectGoods(@PathVariable int goods_id, @RequestParam boolean collection, HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/collectGoods/{goods_id}", method = RequestMethod.POST)
+	public int collectGoods(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
+			@RequestParam boolean collection) {
+		User me = getUser(uid);
 		Goods curGoods = goodsService.findOne(goods_id);
 		if (collection) {
 			collectionService.addCollection(me, curGoods);
@@ -661,16 +662,16 @@ public class APIController {
 	}
 
 	// 商品是否被收藏接口
-	@RequestMapping(value = "/goods/{goods_id}/isCollection", method = RequestMethod.GET)
-	public boolean checkCollection(@PathVariable int goods_id, HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/goods/{goods_id}/isCollection", method = RequestMethod.POST)
+	public boolean checkCollection(@RequestParam(name = "uid") int uid, @PathVariable int goods_id) {
+		User me = getUser(uid);
 		return collectionService.checkCollection(me.getId(), goods_id);
 	}
 
 	// 我的收藏接口
-	@RequestMapping(value = "/myCollection", method = RequestMethod.GET)
-	public List<Collection> getMyCollection(HttpServletRequest request) {
-		User me = getUser(request);
+	@RequestMapping(value = "/myCollection", method = RequestMethod.POST)
+	public List<Collection> getMyCollection(@RequestParam(name = "uid") int uid) {
+		User me = getUser(uid);
 		return collectionService.getMyCollection(me.getId());
 	}
 }
