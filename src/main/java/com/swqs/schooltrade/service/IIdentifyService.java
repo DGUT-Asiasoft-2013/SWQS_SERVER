@@ -6,7 +6,7 @@ import com.swqs.schooltrade.entity.Identify;
 
 public interface IIdentifyService {
 
-	Identify save(Identify identfy);
+	Identify save(Identify identify);
 
 	List<Identify> getGoodsIdBySellerId(Integer id);
 

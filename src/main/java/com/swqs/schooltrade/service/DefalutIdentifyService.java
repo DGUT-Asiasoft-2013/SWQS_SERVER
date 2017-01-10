@@ -19,9 +19,9 @@ public class DefalutIdentifyService implements IIdentifyService {
 	IIdentifyRepository identifyRepo;
 
 	@Override
-	public Identify save(Identify identfy) {
+	public Identify save(Identify identify) {
 		// TODO Auto-generated method stub
-		return identifyRepo.save(identfy);
+		return identifyRepo.save(identify);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import com.swqs.schooltrade.entity.Goods;
 import com.swqs.schooltrade.entity.GoodsLike;
 import com.swqs.schooltrade.entity.Identify;
 import com.swqs.schooltrade.entity.Image;
+import com.swqs.schooltrade.entity.Judgement;
 import com.swqs.schooltrade.entity.Mail;
 import com.swqs.schooltrade.entity.School;
 import com.swqs.schooltrade.entity.User;
@@ -37,6 +38,7 @@ import com.swqs.schooltrade.service.IGoodsLikeService;
 import com.swqs.schooltrade.service.IGoodsService;
 import com.swqs.schooltrade.service.IIdentifyService;
 import com.swqs.schooltrade.service.IImageService;
+import com.swqs.schooltrade.service.IJudgementService;
 import com.swqs.schooltrade.service.ISchoolService;
 import com.swqs.schooltrade.service.IUserLikeService;
 import com.swqs.schooltrade.service.IUserService;
@@ -64,6 +66,8 @@ public class APIController {
 	IUserLikeService userLikeService;
 	@Autowired
 	ICollectionService collectionService;
+	@Autowired
+	IJudgementService judgementService;
 
 	@RequestMapping(value = "/hello", method = RequestMethod.GET)
 	public @ResponseBody String hello() {
@@ -487,25 +491,6 @@ public class APIController {
 		return userService.create(me);
 	}
 
-	// 用户评价商品接口
-	@RequestMapping(value = "/goods/{goods_id}/goodslike", method = RequestMethod.POST)
-	public GoodsLike goodsLike(@RequestParam(name = "uid") int uid, @PathVariable int goods_id,
-			@RequestParam Boolean isLike) {
-		User me = getUser(uid);
-		GoodsLike like = new GoodsLike();
-		Goods goods = goodsService.findOne(goods_id);
-		if (isLike) {
-			like.setGoods(goods);
-			like.setAccount(me);
-			like.setIsLike(isLike);
-			return goodsLikeService.like(like);
-		}
-		like.setGoods(goods);
-		like.setAccount(me);
-		like.setIsLike(isLike);
-		return goodsLikeService.disLike(like);
-	}
-
 	// 用户评价用户接口
 	@RequestMapping(value = "/user/{user_id}/userlike", method = RequestMethod.POST)
 	public UserLike userLike(@RequestParam(name = "uid") int uid, @PathVariable int user_id,
@@ -530,7 +515,6 @@ public class APIController {
 	public int[] getGoodsLikeCount(@PathVariable int goods_id) {
 		int[] count = new int[2];
 		int countLike = goodsLikeService.countLike(goods_id);
-		;
 		int countDisLike = goodsLikeService.countDisLike(goods_id);
 		count[0] = countLike;
 		count[1] = countDisLike;
@@ -542,7 +526,6 @@ public class APIController {
 	public int[] getUserLikeCount(@PathVariable int user_id) {
 		int[] count = new int[2];
 		int countLike = userLikeService.countLike(user_id);
-		;
 		int countDisLike = userLikeService.countDisLike(user_id);
 		count[0] = countLike;
 		count[1] = countDisLike;
@@ -673,5 +656,49 @@ public class APIController {
 	public List<Collection> getMyCollection(@RequestParam(name = "uid") int uid) {
 		User me = getUser(uid);
 		return collectionService.getMyCollection(me.getId());
+	}
+	
+	//买家添加评价接口
+	@RequestMapping(value = "/addJudgement",method = RequestMethod.POST)
+	public Judgement addJudgement(@RequestParam int identifyId,@RequestParam(name = "text")String text,@RequestParam Boolean isLike){
+		Identify identify = identifyService.findIdentifyById(identifyId);
+		User buyer = identify.getBuyer();
+		User seller = identify.getSeller();
+		Goods goods = identify.getGoods();
+		Judgement judgement = new Judgement();
+		GoodsLike like = new GoodsLike();
+		if (isLike) {
+			like.setGoods(goods);
+			like.setAccount(buyer);
+			like.setIsLike(isLike);
+			goodsLikeService.like(like);
+		}
+		like.setGoods(goods);
+		like.setAccount(buyer);
+		like.setIsLike(isLike);
+		goodsLikeService.disLike(like);
+		judgement.setJudgeAcc(buyer);
+		judgement.setGoods(goods);
+		judgement.setText(text);
+		identify.setTradeState((short) 4);
+		identifyService.save(identify);
+		Map<String, String> extra = new HashMap<String, String>();
+		extra.put("goods_id", identify.getGoods().getId() + "");
+		extra.put("pushType", "4");
+		PushToClient.sendPush("买家已评价", "您出售的商品\"" + identify.getGoods().getTitle() + "\"已被评论",
+				identify.getSeller().getAccount(), extra);
+		return judgementService.addJudgement(judgement);
+	}
+	
+	//显示商品评价接口
+	@RequestMapping(value = "/goods/{goods_id}/judgement", method = RequestMethod.GET)
+	public Judgement getJudgement(@PathVariable int goods_id) {
+		return judgementService.getJudgementByGoodsId(goods_id);
+	}
+	
+	//获取好评或者差评
+	@RequestMapping(value = "/getGoodsLike",method = RequestMethod.POST)
+	public boolean getGoodsLike(@RequestParam(name = "buyerId") int buyerId,@RequestParam(name = "goodsId")int goodsId){
+		return goodsLikeService.getGoodsLike(buyerId,goodsId).getIsLike();
 	}
 }

@@ -12,4 +12,7 @@ public interface IGoodsLikeService {
 
 	int countDisLike(int goods_id);
 
+	GoodsLike getGoodsLike(int buyerId, int goodsId);
+
+
 }

@@ -35,5 +35,10 @@ public class DefalutGoodsLikeService implements IGoodsLikeService{
 		// TODO Auto-generated method stub
 		return goodsLikeRepo.countDisLike(goods_id);
 	}
+	@Override
+	public GoodsLike getGoodsLike(int buyerId, int goodsId) {
+		// TODO Auto-generated method stub
+		return goodsLikeRepo.getGoodsLike(buyerId,goodsId);
+	}
 
 }
