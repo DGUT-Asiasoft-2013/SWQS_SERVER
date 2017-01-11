@@ -510,12 +510,12 @@ public class APIController {
 		return userLikeService.disLike(like);
 	}
 
-	// 商品好评/差评数量显示接口
-	@RequestMapping(value = "/goodslike/{goods_id}/count", method = RequestMethod.GET)
-	public int[] getGoodsLikeCount(@PathVariable int goods_id) {
+	// 我的信誉接口
+	@RequestMapping(value = "/myCredit", method = RequestMethod.POST)
+	public int[] getGoodsLikeCount(@RequestParam (name="uid")int uid) {
 		int[] count = new int[2];
-		int countLike = goodsLikeService.countLike(goods_id);
-		int countDisLike = goodsLikeService.countDisLike(goods_id);
+		int countLike = goodsLikeService.countLike(uid);
+		int countDisLike = goodsLikeService.countDisLike(uid);
 		count[0] = countLike;
 		count[1] = countDisLike;
 		return count;

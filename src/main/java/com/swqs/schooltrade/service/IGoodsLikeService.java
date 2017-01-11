@@ -8,9 +8,9 @@ public interface IGoodsLikeService {
 
 	GoodsLike disLike(GoodsLike like);
 
-	int countLike(int goods_id);
+	int countLike(int uid);
 
-	int countDisLike(int goods_id);
+	int countDisLike(int uid);
 
 	GoodsLike getGoodsLike(int buyerId, int goodsId);
 

@@ -9,11 +9,11 @@ import com.swqs.schooltrade.entity.GoodsLike;
 @Repository
 public interface IGoodsLikeRepository extends PagingAndSortingRepository<GoodsLike, Integer>{
 
-	@Query("select count(*) from GoodsLike goodslike where goodslike.goods.id = ?1 and goodslike.isLike = 1")
-	int countLike(int goods_id);
+	@Query("select count(*) from GoodsLike goodslike where goodslike.account.id = ?1 and goodslike.isLike = 1")
+	int countLike(int uid);
 
-	@Query("select count(*) from GoodsLike goodslike where goodslike.goods.id = ?1 and goodslike.isLike = 0")
-	int countDisLike(int goods_id);
+	@Query("select count(*) from GoodsLike goodslike where goodslike.account.id = ?1 and goodslike.isLike = 0")
+	int countDisLike(int uid);
 
 	@Query("from GoodsLike goodslike where goodslike.account.id=?1 and goodslike.goods.id = ?2")
 	GoodsLike getGoodsLike(int buyerIds, int goodsId);

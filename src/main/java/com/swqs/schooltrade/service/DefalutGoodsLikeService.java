@@ -26,14 +26,14 @@ public class DefalutGoodsLikeService implements IGoodsLikeService{
 		return goodsLikeRepo.save(like);
 	}
 	@Override
-	public int countLike(int goods_id) {
+	public int countLike(int uid) {
 		// TODO Auto-generated method stub
-		return goodsLikeRepo.countLike(goods_id);
+		return goodsLikeRepo.countLike(uid);
 	}
 	@Override
-	public int countDisLike(int goods_id) {
+	public int countDisLike(int uid) {
 		// TODO Auto-generated method stub
-		return goodsLikeRepo.countDisLike(goods_id);
+		return goodsLikeRepo.countDisLike(uid);
 	}
 	@Override
 	public GoodsLike getGoodsLike(int buyerId, int goodsId) {
